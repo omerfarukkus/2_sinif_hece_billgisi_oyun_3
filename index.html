@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2. Sınıf Hece Bilgisi Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .notebook-background {
+            background-color: #fffef0; /* Hafif sarımsı kağıt rengi */
+            background-image: 
+                linear-gradient(to right, rgba(255, 182, 193, 0.5) 2px, transparent 2px), /* Pembe kenar çizgisi */
+                linear-gradient(to bottom, rgba(173, 216, 230, 0.4) 1px, transparent 1px); /* Açık mavi satır çizgileri */
+            background-size: 100% 100%, 100% 2.5rem; /* Kenar çizgisi boyutu, satır çizgisi aralığı */
+            background-position: 2.5rem 0, 0 0.5rem; /* Kenar çizgisi konumu, satır çizgileri konumu */
+            border-radius: 1rem;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        
+        .sketchy-button {
+            border: 3px solid;
+            border-radius: 12px;
+            padding: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 3px 3px 0px 0px rgba(0,0,0,0.1);
+            transform: rotate(-1deg); /* Hafif eğik duruş */
+        }
+
+        .sketchy-button:hover {
+            transform: translateY(-4px) rotate(1deg);
+            box-shadow: 5px 5px 0px 0px rgba(0,0,0,0.15);
+        }
+
+        /* Renkler */
+        .color-green { border-color: #34d399; color: #10b981; }
+        .color-orange { border-color: #fb923c; color: #f97316; }
+        .color-purple { border-color: #a78bfa; color: #8b5cf6; }
+
+        .correct-sketchy {
+             background-color: #e0f2fe; /* light blue */
+             transform: scale(1.05) rotate(0deg);
+        }
+        .wrong-sketchy {
+             background-color: #fee2e2; /* light red */
+             transform: scale(0.95) rotate(0deg);
+        }
+        
+        .heart-icon {
+            font-size: 1.75rem;
+            line-height: 2.25rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .star-icon {
+            font-size: 3rem;
+            color: #fbbf24;
+        }
+        .star-empty {
+            color: #d1d5db;
+        }
+        .feedback-toast {
+            animation: slide-in-out 2s forwards;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150%);
+        }
+        @keyframes slide-in-out {
+            0% { transform: translateX(-50%) translateY(150%); opacity: 0; }
+            20%, 80% { transform: translateX(-50%) translateY(0); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(150%); opacity: 0; }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div id="quiz-container" class="w-full max-w-2xl mx-auto">
+
+        <!-- Başlangıç Ekranı -->
+        <div id="start-screen" class="text-center p-8 bg-white rounded-2xl shadow-lg">
+            <h1 class="text-4xl font-bold text-gray-800 mb-4">2. Sınıf Hece Bilgisi Testi</h1>
+            <p class="text-gray-600 text-lg mb-8">Bilgini test etmeye ve yıldızları toplamaya hazır mısın? Testte 12 soru var ve 4 can hakkın bulunuyor.</p>
+            <button id="start-button" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:bg-indigo-700 transition-all transform hover:scale-105">
+                Teste Başla!
+            </button>
+        </div>
+
+        <!-- Sınav Ekranı (Başlangıçta gizli) -->
+        <div id="quiz-screen" class="hidden">
+             <!-- Üst Bilgi Paneli -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-2">
+                    <div class="flex items-center gap-2">
+                         <div class="flex items-center gap-1" id="lives-container">
+                            <!-- Canlar buraya JS ile eklenecek -->
+                        </div>
+                    </div>
+                    <span id="question-counter" class="text-sm font-semibold text-gray-500">Soru 1 / 12</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-yellow-400 h-2.5 rounded-full" style="width: 8%"></div>
+                </div>
+            </div>
+
+            <!-- Soru Alanı -->
+            <div class="p-8 md:p-10 notebook-background">
+                 <h2 id="question-text" class="text-2xl md:text-3xl font-bold text-gray-800 text-left leading-relaxed"></h2>
+            </div>
+
+             <!-- Seçenekler Alanı -->
+            <div id="options-container" class="flex flex-wrap justify-center items-center gap-4 mt-8">
+                <!-- Seçenekler buraya JS ile eklenecek -->
+            </div>
+        </div>
+
+        <!-- Sonuç Ekranı (Başlangıçta gizli) -->
+        <div id="result-screen" class="hidden text-center p-8 bg-white rounded-2xl shadow-lg">
+            <h1 class="text-4xl font-bold text-indigo-600 mb-2">Harika İş!</h1>
+            <p class="text-gray-600 text-lg mb-6">Testi tamamladın. İşte sonuçların:</p>
+            <div class="flex justify-center mb-6" id="star-container">
+                <!-- Yıldızlar buraya JS ile eklenecek -->
+            </div>
+            <div class="text-2xl font-semibold text-gray-700 mb-8">
+                <p>Toplam Puanın: <span id="final-score" class="text-indigo-600 font-bold"></span></p>
+                <p>Doğru Sayısı: <span id="correct-answers" class="text-green-500 font-bold"></span></p>
+            </div>
+            <button id="restart-button" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full text-xl hover:bg-indigo-700 transition-all transform hover:scale-105">
+                Yeniden Başla
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Doğru/Yanlış Bildirim Alanı -->
+    <div id="feedback-toast" class="hidden feedback-toast text-white px-6 py-3 rounded-full font-bold shadow-xl"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elementleri
+            const startScreen = document.getElementById('start-screen');
+            const quizScreen = document.getElementById('quiz-screen');
+            const resultScreen = document.getElementById('result-screen');
+            const startButton = document.getElementById('start-button');
+            const restartButton = document.getElementById('restart-button');
+            const questionCounter = document.getElementById('question-counter');
+            const progressBar = document.getElementById('progress-bar');
+            const livesContainer = document.getElementById('lives-container');
+            const questionText = document.getElementById('question-text');
+            const optionsContainer = document.getElementById('options-container');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const correctAnswersDisplay = document.getElementById('correct-answers');
+            const starContainer = document.getElementById('star-container');
+            const feedbackToast = document.getElementById('feedback-toast');
+
+            // Sorular
+            const questions = [
+                { question: '"Kelebek" kelimesi hecelerine nasıl doğru ayrılır?', options: ['Ke-le-bek', 'Kel-eb-ek', 'Ke-lebek'], answer: 'Ke-le-bek' },
+                { question: 'Aşağıdaki kelimelerden hangisi tek hecelidir?', options: ['Okul', 'Yurt', 'Sınıf'], answer: 'Yurt' },
+                { question: '"Televizyon" kelimesi kaç heceden oluşur?', options: ['3', '4', '5'], answer: '4' },
+                { question: '"Hanımeli" kelimesi hecelerine ayrıldığında hangisi doğru olur?', options: ['Ha-nı-me-li', 'Han-ım-e-li', 'Ha-nım-eli'], answer: 'Ha-nı-me-li' },
+                { question: 'Aşağıdaki kelimelerden hangisinin hece sayısı diğerlerinden fazladır?', options: ['Bilgisayar', 'Kitaplık', 'Öğretmen'], answer: 'Bilgisayar' },
+                { question: '"Kamyon" kelimesi hecelerine nasıl ayrılır?', options: ['Kam-yon', 'Ka-myon', 'Kamy-on'], answer: 'Kam-yon' },
+                { question: '"İlkokul" kelimesinin doğru hecelenişi hangisidir?', options: ['İl-ko-kul', 'İlk-o-kul', 'İl-kok-ul'], answer: 'İlk-o-kul' },
+                { question: '"Tren" kelimesi kaç hecelidir?', options: ['1', '2', '3'], answer: '1' },
+                { question: '"Cumhuriyet" kelimesi kaç heceden oluşur?', options: ['3', '4', '5'], answer: '4' },
+                { question: 'Aşağıdaki kelimelerden hangisi hecelerine yanlış ayrılmıştır?', options: ['il-köğ-re-tim', 'san-dal-ye', 'por-ta-kal'], answer: 'il-köğ-re-tim' },
+                { question: '"Okuyabiliyor" kelimesi hecelerine nasıl doğru ayrılır?', options: ['O-ku-ya-bi-li-yor', 'O-kuy-a-bil-i-yor', 'Ok-u-ya-bi-li-yor'], answer: 'O-ku-ya-bi-li-yor' },
+                { question: 'Aşağıdaki sözcüklerden hangisi hecelerine yanlış ayrılmıştır?', options: ['a-yak-ka-bı', 'kar-deş-im', 'te-miz-lik'], answer: 'kar-deş-im' }
+            ];
+
+            // Oyun Değişkenleri
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let lives = 4;
+            let questionsShuffled = [];
+
+            // Olay Dinleyicileri
+            startButton.addEventListener('click', startGame);
+            restartButton.addEventListener('click', startGame);
+
+            // Fonksiyonlar
+            function shuffleArray(array) {
+                return array.sort(() => Math.random() - 0.5);
+            }
+
+            function startGame() {
+                currentQuestionIndex = 0;
+                score = 0;
+                lives = 4;
+                questionsShuffled = shuffleArray([...questions]);
+                
+                startScreen.classList.add('hidden');
+                resultScreen.classList.add('hidden');
+                quizScreen.classList.remove('hidden');
+
+                updateLivesUI();
+                displayQuestion();
+            }
+
+            function displayQuestion() {
+                if (currentQuestionIndex >= questionsShuffled.length || lives <= 0) {
+                    showResults();
+                    return;
+                }
+
+                optionsContainer.innerHTML = '';
+                
+                const questionData = questionsShuffled[currentQuestionIndex];
+                questionText.textContent = questionData.question;
+                questionCounter.textContent = `Soru ${currentQuestionIndex + 1} / ${questionsShuffled.length}`;
+                progressBar.style.width = `${((currentQuestionIndex + 1) / questionsShuffled.length) * 100}%`;
+
+                const optionColors = ['color-green', 'color-orange', 'color-purple'];
+                shuffleArray(questionData.options).forEach((option, index) => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.className = `w-5/12 sketchy-button bg-white ${optionColors[index % optionColors.length]}`;
+                    button.addEventListener('click', () => selectAnswer(button, option, questionData.answer));
+                    optionsContainer.appendChild(button);
+                });
+            }
+            
+            function selectAnswer(button, selectedOption, correctAnswer) {
+                Array.from(optionsContainer.children).forEach(btn => btn.disabled = true);
+                
+                if (selectedOption === correctAnswer) {
+                    score += 10;
+                    button.classList.add('correct-sketchy');
+                    showFeedback(true);
+                } else {
+                    lives--;
+                    button.classList.add('wrong-sketchy');
+                    updateLivesUI();
+                    showFeedback(false);
+
+                     Array.from(optionsContainer.children).forEach(btn => {
+                        if (btn.textContent === correctAnswer) {
+                             btn.classList.add('correct-sketchy');
+                        }
+                    });
+                }
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    displayQuestion();
+                }, 1500);
+            }
+
+            function updateLivesUI() {
+                livesContainer.innerHTML = '';
+                for (let i = 0; i < 4; i++) {
+                    const heart = document.createElement('span');
+                    heart.className = 'heart-icon';
+                    if (i < lives) {
+                        heart.textContent = '❤️';
+                        heart.classList.add('text-red-500');
+                    } else {
+                        heart.textContent = '♡';
+                        heart.classList.add('text-gray-300');
+                    }
+                    livesContainer.appendChild(heart);
+                }
+            }
+
+            function showFeedback(isCorrect) {
+                feedbackToast.classList.remove('hidden');
+                if (isCorrect) {
+                    feedbackToast.textContent = 'Doğru!';
+                    feedbackToast.className = 'feedback-toast bg-green-500 text-white px-6 py-3 rounded-full font-bold shadow-xl';
+                } else {
+                    feedbackToast.textContent = 'Yanlış!';
+                    feedbackToast.className = 'feedback-toast bg-red-500 text-white px-6 py-3 rounded-full font-bold shadow-xl';
+                }
+                setTimeout(() => {
+                     feedbackToast.classList.add('hidden');
+                }, 1900);
+            }
+
+            function showResults() {
+                quizScreen.classList.add('hidden');
+                resultScreen.classList.remove('hidden');
+                
+                const correctCount = score / 10;
+                finalScoreDisplay.textContent = score;
+                correctAnswersDisplay.textContent = `${correctCount} / ${questionsShuffled.length}`;
+
+                starContainer.innerHTML = '';
+                let starCount = 0;
+                if (correctCount >= 10) starCount = 3;
+                else if (correctCount >= 7) starCount = 2;
+                else if (correctCount >= 4) starCount = 1;
+
+                for (let i = 0; i < 3; i++) {
+                    const star = document.createElement('span');
+                    star.className = 'star-icon';
+                    if (i < starCount) {
+                        star.textContent = '★';
+                    } else {
+                        star.textContent = '☆';
+                        star.classList.add('star-empty');
+                    }
+                    starContainer.appendChild(star);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+
